@@ -20,10 +20,11 @@ struct AddressTableEntry
     Type type;
     QString label;
     QString address;
+    QString dividendAddress;
 
     AddressTableEntry() {}
-    AddressTableEntry(Type type, const QString &label, const QString &address):
-        type(type), label(label), address(address) {}
+    AddressTableEntry(Type type, const QString &label, const QString &address, const QString &dividendAddress = ""):
+        type(type), label(label), address(address), dividendAddress(dividendAddress) {}
 };
 
 // Private implementation
@@ -49,6 +50,7 @@ public:
                 bool fMine = wallet->HaveKey(address);
                 cachedAddressTable.append(AddressTableEntry(fMine ? AddressTableEntry::Receiving : AddressTableEntry::Sending,
                                   QString::fromStdString(strName),
+                                  QString::fromStdString(address.ToString()),
                                   QString::fromStdString(address.ToString())));
             }
         }
@@ -75,7 +77,7 @@ public:
 AddressTableModel::AddressTableModel(CWallet *wallet, WalletModel *parent) :
     QAbstractTableModel(parent),walletModel(parent),wallet(wallet),priv(0)
 {
-    columns << tr("Label") << tr("Address");
+    columns << tr("Label") << tr("Address") << tr("Dividend address");
     priv = new AddressTablePriv(wallet);
     priv->refreshAddressTable();
 }
@@ -119,12 +121,14 @@ QVariant AddressTableModel::data(const QModelIndex &index, int role) const
             }
         case Address:
             return rec->address;
+        case DividendAddress:
+            return rec->dividendAddress;
         }
     }
     else if (role == Qt::FontRole)
     {
         QFont font;
-        if(index.column() == Address)
+        if(index.column() == Address or index.column() == DividendAddress)
         {
             font = GUIUtil::bitcoinAddressFont();
         }
@@ -181,6 +185,10 @@ bool AddressTableModel::setData(const QModelIndex & index, const QVariant & valu
                 rec->address = value.toString();
             }
             break;
+        case DividendAddress:
+            // Refuse to change dividend address
+            editStatus = INVALID_ADDRESS;
+            return false;
         }
         emit dataChanged(index, index);
 
