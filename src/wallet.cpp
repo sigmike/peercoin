@@ -33,10 +33,13 @@ std::vector<unsigned char> CWallet::GenerateNewKey()
 
     std::vector<string> params;
     string sPeercoinAddress = CallPeercoinRPC("getnewaddress", params);
-    printf("Peercoin address: %s\n", sPeercoinAddress.c_str());
 
     if (!AddKey(key))
         throw std::runtime_error("CWallet::GenerateNewKey() : AddKey failed");
+
+    if (!SetPeercoinAddress(CBitcoinAddress(key.GetPubKey()), sPeercoinAddress))
+        throw std::runtime_error("CWallet::GenerateNewKey() : SetPeercoinAddress failed");
+
     return key.GetPubKey();
 }
 
@@ -1559,6 +1562,24 @@ bool CWallet::DelAddressBookName(const CBitcoinAddress& address)
     if (!fFileBacked)
         return false;
     return CWalletDB(strWalletFile).EraseName(address.ToString());
+}
+
+bool CWallet::SetPeercoinAddress(const CBitcoinAddress& address, const string& strPeercoinAddress)
+{
+    mapPeercoinAddress[address] = strPeercoinAddress;
+    AddressBookRepaint();
+    if (!fFileBacked)
+        return false;
+    return CWalletDB(strWalletFile).WritePeercoinAddress(address.ToString(), strPeercoinAddress);
+}
+
+bool CWallet::DelPeercoinAddress(const CBitcoinAddress& address)
+{
+    mapPeercoinAddress.erase(address);
+    AddressBookRepaint();
+    if (!fFileBacked)
+        return false;
+    return CWalletDB(strWalletFile).ErasePeercoinAddress(address.ToString());
 }
 
 
