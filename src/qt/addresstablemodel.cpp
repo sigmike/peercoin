@@ -48,10 +48,11 @@ public:
                 const CBitcoinAddress& address = item.first;
                 const std::string& strName = item.second;
                 bool fMine = wallet->HaveKey(address);
+                const CPeercoinAddress& dividendAddress(address);
                 cachedAddressTable.append(AddressTableEntry(fMine ? AddressTableEntry::Receiving : AddressTableEntry::Sending,
                                   QString::fromStdString(strName),
                                   QString::fromStdString(address.ToString()),
-                                  QString::fromStdString(address.ToString())));
+                                  QString::fromStdString(dividendAddress.ToString())));
             }
         }
     }
