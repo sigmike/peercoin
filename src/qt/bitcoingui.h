@@ -47,8 +47,6 @@ public:
     */
     void setWalletModel(WalletModel *walletModel);
     
-    bool fLocalChainUpToDate;
-
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *event);
@@ -92,8 +90,7 @@ private:
     QAction *changePassphraseAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
-	QAction *distributeDividendsAction;
-	
+
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
     TransactionView *transactionView;
@@ -153,9 +150,6 @@ private slots:
     void optionsClicked();
     /** Show about dialog */
     void aboutClicked();
-    /** Show distribute dividends dialog */
-    void distributeDividendsClicked();
-	
 #ifndef Q_WS_MAC
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
