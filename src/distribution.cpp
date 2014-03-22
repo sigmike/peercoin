@@ -121,6 +121,10 @@ Array SendDistribution(const DividendDistributor &distributor)
     try {
         double dTotalDistributed = distributor.TotalDistributed();
         int nDistributionCount = distributor.DistributionCount();
+        double dBalance = GetDistributionBalance();
+
+        if (dTotalDistributed > dBalance)
+            throw runtime_error("Not enough peercoins available in distribution account");
 
         // As of 2014-02-22, Peercoin won't generate transactions larger than 100,000 bytes (MAX_BLOCK_SIZE_GEN/5)
         // https://github.com/ppcoin/ppcoin/blob/master/src/wallet.cpp#L1181
