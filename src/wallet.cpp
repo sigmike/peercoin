@@ -1158,6 +1158,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64> >& vecSend, CW
                         // change transaction isn't always pay-to-bitcoin-address
                         scriptChange.SetBitcoinAddress(vchPubKey);
                     }
+                    else
+                        reservekey.ReturnKey();
 
                     // Insert change txn at random position:
                     vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size());
