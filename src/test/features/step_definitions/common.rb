@@ -3,6 +3,7 @@ Before do
   @addresses = {}
   @nodes = {}
   @tx = {}
+  @pubkeys = {}
   protocol_v04_switch = Time.at(1395700000)
   net_start = protocol_v04_switch + 24 * 3600
   container_start = net_start + 90 * 24 * 3600
@@ -110,7 +111,7 @@ When(/^node "(.*?)" finds a block$/) do |node|
   @nodes[node].generate_stake
 end
 
-Then(/^all nodes should be at block "(.*?)"$/) do |block|
+Then(/^all nodes should (?:be at|reach) block "(.*?)"$/) do |block|
   begin
     wait_for do
       main = @nodes.values.map(&:top_hash)
@@ -188,4 +189,20 @@ end
 
 Then(/^node "(.*?)" should have (\d+) connection$/) do |arg1, arg2|
   expect(@nodes[arg1].info["connections"]).to eq(arg2.to_i)
+end
+
+When(/^node "(.*?)" retrieves the public key of the "(.*?)" address$/) do |arg1, arg2|
+  info = @nodes[arg1].rpc("validateaddress", @addresses[arg2])
+  @pubkeys[arg2] = info["pubkey"]
+end
+
+When(/^all nodes are after the protocol V05 switch time$/) do
+  switch_time = Time.at(1422972000) + 1
+  @nodes.values.each do |node|
+    time = Time.parse(node.info["time"])
+    if time < switch_time
+      node.rpc("timetravel", (switch_time - time).to_i)
+    end
+  end
+  @time_shift = switch_time - Time.now
 end
