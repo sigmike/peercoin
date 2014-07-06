@@ -215,6 +215,9 @@ const char* GetOpName(opcodetype opcode)
     case OP_NOP9                   : return "OP_NOP9";
     case OP_NOP10                  : return "OP_NOP10";
 
+    // peercoin
+    case OP_COINSTAKE              : return "OP_COINSTAKE";
+
 
 
     // template matching params
@@ -369,6 +372,12 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                 }
                 break;
 
+                case OP_COINSTAKE:
+                {
+                    CBigNum bn(txTo.IsCoinStake() ? 1 : 0);
+                    stack.push_back(bn.getvch());
+                }
+                break;
 
                 //
                 // Control

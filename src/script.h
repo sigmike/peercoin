@@ -202,6 +202,9 @@ enum opcodetype
     OP_NOP10 = 0xb9,
 
 
+    // peercoin
+    OP_COINSTAKE = 0xc0,
+
 
     // template matching params
     OP_SMALLINTEGER = 0xfa,
