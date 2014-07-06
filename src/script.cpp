@@ -79,6 +79,7 @@ const char* GetTxnOutputType(txnouttype t)
     case TX_PUBKEYHASH: return "pubkeyhash";
     case TX_SCRIPTHASH: return "scripthash";
     case TX_MULTISIG: return "multisig";
+    case TX_COLDMINTING: return "coldminting";
     }
     return NULL;
 }
@@ -1147,6 +1148,9 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 
         // Sender provides N pubkeys, receivers provides M signatures
         mTemplates.insert(make_pair(TX_MULTISIG, CScript() << OP_SMALLINTEGER << OP_PUBKEYS << OP_SMALLINTEGER << OP_CHECKMULTISIG));
+
+        // ppcoin: Cold minting script
+        mTemplates.insert(make_pair(TX_COLDMINTING, CScript() << OP_DUP << OP_HASH160 << OP_COINSTAKE << OP_IF << OP_PUBKEYHASH << OP_ELSE << OP_PUBKEYHASH << OP_ENDIF << OP_EQUALVERIFY << OP_CHECKSIG));
     }
 
     // Shortcut for pay-to-script-hash, which are more constrained than the other types:
@@ -1281,7 +1285,7 @@ bool SignN(const vector<valtype>& multisigdata, const CKeyStore& keystore, uint2
 // Returns false if scriptPubKey could not be completely satisfied.
 //
 bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash, int nHashType,
-                  CScript& scriptSigRet, txnouttype& whichTypeRet)
+                  CScript& scriptSigRet, txnouttype& whichTypeRet, bool fCoinStake = false)
 {
     scriptSigRet.clear();
 
@@ -1314,6 +1318,16 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     case TX_MULTISIG:
         scriptSigRet << OP_0; // workaround CHECKMULTISIG bug
         return (SignN(vSolutions, keystore, hash, nHashType, scriptSigRet));
+    case TX_COLDMINTING:
+        keyID = CKeyID(uint160(vSolutions[fCoinStake ? 0 : 1]));
+        if (Sign1(keyID, keystore, hash, nHashType, scriptSigRet))
+        {
+            CPubKey vch;
+            keystore.GetPubKey(keyID, vch);
+            scriptSigRet << vch;
+            return true;
+        }
+        return false;
     }
     return false;
 }
@@ -1334,6 +1348,8 @@ int ScriptSigArgsExpected(txnouttype t, const std::vector<std::vector<unsigned c
         return vSolutions[0][0] + 1;
     case TX_SCRIPTHASH:
         return 1; // doesn't include args needed by the script
+    case TX_COLDMINTING:
+        return 2;
     }
     return -1;
 }
@@ -1424,6 +1440,9 @@ bool IsMine(const CKeyStore &keystore, const CScript& scriptPubKey)
         vector<valtype> keys(vSolutions.begin()+1, vSolutions.begin()+vSolutions.size()-1);
         return HaveKeys(keys, keystore) == keys.size();
     }
+    case TX_COLDMINTING:
+        vector<valtype> keys(vSolutions.begin(), vSolutions.begin()+vSolutions.size()-1);
+        return HaveKeys(keys, keystore) > 0;
     }
     return false;
 }
@@ -1535,7 +1554,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     uint256 hash = SignatureHash(fromPubKey, txTo, nIn, nHashType);
 
     txnouttype whichType;
-    if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType))
+    if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType, txTo.IsCoinStake()))
         return false;
 
     if (whichType == TX_SCRIPTHASH)
@@ -1646,6 +1665,7 @@ static CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo,
         return PushAll(sigs2);
     case TX_PUBKEY:
     case TX_PUBKEYHASH:
+    case TX_COLDMINTING:
         // Signatures are bigger than placeholders or empty scripts:
         if (sigs1.empty() || sigs1[0].empty())
             return PushAll(sigs2);
@@ -1787,6 +1807,23 @@ void CScript::SetMultisig(int nRequired, const std::vector<CKey>& keys)
     BOOST_FOREACH(const CKey& key, keys)
         *this << key.GetPubKey();
     *this << EncodeOP_N(keys.size()) << OP_CHECKMULTISIG;
+}
+
+void CScript::SetColdMinting(const CKey& mintingKey, const CKey& spendingKey)
+{
+    clear();
+
+    *this
+        << OP_DUP
+        << OP_HASH160
+        << OP_COINSTAKE
+        << OP_IF
+        << mintingKey.GetPubKey().GetID()
+        << OP_ELSE
+        << spendingKey.GetPubKey().GetID()
+        << OP_ENDIF
+        << OP_EQUALVERIFY
+        << OP_CHECKSIG;
 }
 
 bool CScriptCompressor::IsToKeyID(CKeyID &hash) const

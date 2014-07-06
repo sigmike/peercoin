@@ -48,6 +48,7 @@ enum txnouttype
     TX_PUBKEYHASH,
     TX_SCRIPTHASH,
     TX_MULTISIG,
+    TX_COLDMINTING,
 };
 
 class CNoDestination {
@@ -555,6 +556,7 @@ public:
 
     void SetDestination(const CTxDestination& address);
     void SetMultisig(int nRequired, const std::vector<CKey>& keys);
+    void SetColdMinting(const CKey& mintingKey, const CKey& spendingKey);
 
 
     void PrintHex() const
