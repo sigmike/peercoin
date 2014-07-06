@@ -1809,7 +1809,7 @@ void CScript::SetMultisig(int nRequired, const std::vector<CKey>& keys)
     *this << EncodeOP_N(keys.size()) << OP_CHECKMULTISIG;
 }
 
-void CScript::SetColdMinting(const CKey& mintingKey, const CKey& spendingKey)
+void CScript::SetColdMinting(const CKeyID& mintingKey, const CKeyID& spendingKey)
 {
     clear();
 
@@ -1818,9 +1818,9 @@ void CScript::SetColdMinting(const CKey& mintingKey, const CKey& spendingKey)
         << OP_HASH160
         << OP_COINSTAKE
         << OP_IF
-        << mintingKey.GetPubKey().GetID()
+        << mintingKey
         << OP_ELSE
-        << spendingKey.GetPubKey().GetID()
+        << spendingKey
         << OP_ENDIF
         << OP_EQUALVERIFY
         << OP_CHECKSIG;

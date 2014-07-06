@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(minting_script)
     spendingKey.MakeNewKey(false);
 
     CScript scriptMinting;
-    scriptMinting.SetColdMinting(mintingKey, spendingKey);
+    scriptMinting.SetColdMinting(mintingKey.GetPubKey().GetID(), spendingKey.GetPubKey().GetID());
     BOOST_CHECK(IsStandard(scriptMinting));
 
     CTransaction txFrom;

@@ -556,7 +556,7 @@ public:
 
     void SetDestination(const CTxDestination& address);
     void SetMultisig(int nRequired, const std::vector<CKey>& keys);
-    void SetColdMinting(const CKey& mintingKey, const CKey& spendingKey);
+    void SetColdMinting(const CKeyID& mintingKey, const CKeyID& spendingKey);
 
 
     void PrintHex() const
