@@ -1140,7 +1140,7 @@ int64 GetProofOfStakeReward(int64 nCoinAge)
     return nSubsidy;
 }
 
-static const int64 nTargetTimespan = 7 * 24 * 60 * 60;  // one week
+static const int64 nTargetTimespan = 2 * 60;  // 2 minutes
 static const int64 nTargetSpacingWorkMax = 12 * STAKE_TARGET_SPACING; // 2-hour
 
 //
@@ -3084,6 +3084,12 @@ bool LoadBlockIndex()
         nCoinbaseMaturity = 60;
         bnInitialHashTarget = CBigNum(~uint256(0) >> 29);
         nModifierInterval = 60 * 20; // test net modifier interval is 20 minutes
+
+        nStakeMinAge = 60;
+        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 0);
+        bnInitialHashTarget = CBigNum(~uint256(0) >> 20);
+        nModifierInterval = 60 * 5;
+        hashGenesisBlock = uint256("ad7369640baec9a067fcb0292b457ff3611e6b971cc2730950d4d4b20e50b5cc");
     }
 
     printf("%s Network: genesis=0x%s nBitsLimit=0x%08x nBitsInitial=0x%08x nStakeMinAge=%d nCoinbaseMaturity=%d nModifierInterval=%d\n",
