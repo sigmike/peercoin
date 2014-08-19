@@ -134,7 +134,6 @@ double GetBlockDifficulty(const CBlockIndex* blockindex = NULL);
 
 
 
-
 bool GetWalletFile(CWallet* pwallet, std::string &strWalletFileOut);
 
 /** Position on disk for a particular transaction. */
