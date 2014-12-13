@@ -74,3 +74,9 @@ Feature: Ability to mint while the coins are in cold storage
 
     When node "Alice" finds block until just received coins are able to mint
     Then node "Bob" should not be able to find a block "X"
+
+  Scenario: Cold storage spend some coins and the change is sent back to the minting key
+  Scenario: New coins are sent to the cold minting address
+  Scenario: Minting with only the spending key
+  Scenario: Minting with the minting and the spending keys
+  Scenario: Minting with mixed coins (from minting only and normal coins)
